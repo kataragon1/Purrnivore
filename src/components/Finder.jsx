@@ -2,9 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import AdvancedSearch from './AdvancedSearch'
 import { evaluateRules, compareBy, compareWithTiebreak, FIELD_BY_KEY } from '../lib/query'
 import { buildIngredientVocabulary } from '../lib/ingredientVocab'
+import { FODMAP_LEVELS, fodmapRank, fodmapLabel } from '../lib/fodmapScale'
 
-const ORDER = { Excellent: 0, Good: 1, Moderate: 2, Poor: 3, Avoid: 4 }
-const FODMAP_RATINGS = ['Excellent', 'Good', 'Moderate', 'Poor', 'Avoid']
 const VIEWS = [
   { key: 'dry', label: 'Dry food' },
   { key: 'wet', label: 'Wet food' },
@@ -93,7 +92,7 @@ export default function Finder({ foods }) {
           : ((f.brand || '') + ' ' + (f.full_product_name || '') + ' ' + (f.ingredients || '')).toLowerCase()
         if (!hay.includes(q)) return false
       }
-      if (fodmapOn.length && !fodmapOn.includes(f.fodmap_rating)) return false
+      if (fodmapOn.length && !fodmapOn.includes(fodmapRank(f))) return false
       if (minAnimal > 0 && (f.animal_idx == null || f.animal_idx < minAnimal)) return false
       if (view === 'dry' && maxKcal < 600 && (f.kcal == null || f.kcal > maxKcal)) return false
       const prot = proteinValue(f, view)
@@ -108,7 +107,7 @@ export default function Finder({ foods }) {
     } else {
       out.sort((a, b) => {
         switch (sortKey) {
-          case 'fodmap': return (ORDER[a.fodmap_rating] - ORDER[b.fodmap_rating]) || ((b.animal_idx || 0) - (a.animal_idx || 0))
+          case 'fodmap': return (fodmapRank(a) - fodmapRank(b)) || ((b.animal_idx || 0) - (a.animal_idx || 0))
           case 'animal': return (b.animal_idx || 0) - (a.animal_idx || 0)
           case 'protein': return (proteinValue(b, view) || 0) - (proteinValue(a, view) || 0)
           case 'kcal_lo': return (a.kcal || 9999) - (b.kcal || 9999)
@@ -145,14 +144,14 @@ export default function Finder({ foods }) {
             </div>
           </div>
           <div className="fgroup">
-            <label>FODMAP rating</label>
+            <label>FODMAP risk</label>
             <div className="chips">
-              {FODMAP_RATINGS.map(r => (
+              {FODMAP_LEVELS.map((label, rank) => (
                 <span
-                  key={r}
-                  className={`chip r-${r}${fodmapOn.includes(r) ? ' on' : ''}`}
-                  onClick={() => setFodmapOn(toggleValue(fodmapOn, r))}
-                >{r}</span>
+                  key={rank}
+                  className={`chip r-rank-${rank}${fodmapOn.includes(rank) ? ' on' : ''}`}
+                  onClick={() => setFodmapOn(toggleValue(fodmapOn, rank))}
+                >{label}</span>
               ))}
             </div>
           </div>
@@ -193,7 +192,7 @@ export default function Finder({ foods }) {
           <div className="results-head">
             <div className="count"><b>{results.length}</b> {view} foods match</div>
             <select className="sortsel" value={sortKey} onChange={e => setSortKey(e.target.value)}>
-              <option value="fodmap">Sort: FODMAP (lowest fermentable-load first)</option>
+              <option value="fodmap">Sort: FODMAP risk (lowest fermentable-load first)</option>
               <option value="animal">Sort: Animal index (high first)</option>
               <option value="protein">Sort: {proteinLabel(view)} (high first)</option>
               {view === 'dry' && <option value="kcal_lo">Sort: Calories (low first)</option>}
@@ -205,7 +204,7 @@ export default function Finder({ foods }) {
             <thead>
               <tr>
                 <th onClick={() => setSortKey('brand')}>Food</th>
-                <th onClick={() => setSortKey('fodmap')}>FODMAP</th>
+                <th onClick={() => setSortKey('fodmap')}>FODMAP risk</th>
                 <th onClick={() => setSortKey('animal')}>Animal</th>
                 <th onClick={() => setSortKey('protein')}>{proteinLabel(view)}</th>
                 {view === 'dry' && <th onClick={() => setSortKey('kcal_lo')}>Kcal</th>}
@@ -215,7 +214,7 @@ export default function Finder({ foods }) {
               {results.map((f, i) => (
                 <tr key={i} onClick={() => setSelected(f)}>
                   <td><div className="food-brand">{f.brand}</div><div className="food-name">{f.full_product_name}</div></td>
-                  <td><span className={`pill p-${f.fodmap_rating}`}>{f.fodmap_rating}</span></td>
+                  <td><span className={`pill p-rank-${fodmapRank(f)}`}>{fodmapLabel(f)}</span></td>
                   <td><AnimalMeter value={f.animal_idx} band={f.animal_band} /></td>
                   <td className="num">{proteinValue(f, view) ?? '–'}</td>
                   {view === 'dry' && <td className="num">{f.kcal ?? '–'}</td>}
@@ -241,7 +240,7 @@ export default function Finder({ foods }) {
             </div>
             <div className="modal-body">
               <div className="metrics">
-                <div className="metric"><span>FODMAP</span><b>{selected.fodmap_rating}</b></div>
+                <div className="metric"><span>FODMAP risk</span><b>{fodmapLabel(selected)}</b></div>
                 <div className="metric"><span>Animal idx</span><b><AnimalMeter value={selected.animal_idx} band={selected.animal_band} /></b></div>
                 <div className="metric"><span>{proteinLabel(selected.form)}</span><b>{proteinValue(selected, selected.form) ?? '–'}%</b></div>
                 <div className="metric"><span>Kcal/cup</span><b>{selected.form === 'dry' ? (selected.kcal ?? '–') : 'n/a'}</b></div>

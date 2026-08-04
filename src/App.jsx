@@ -4,6 +4,7 @@ import Method from './components/Method'
 import About from './components/About'
 import CatLoader from './components/CatLoader'
 import { fetchFoods } from './lib/firebase'
+import { fodmapRank } from './lib/fodmapScale'
 
 function App() {
   const [tab, setTab] = useState('finder')
@@ -45,7 +46,7 @@ function App() {
             <div className="stat-row">
               <div className="stat"><b>{foods.length}</b><span>foods scored</span></div>
               <div className="stat"><b>{new Set(foods.map(f => f.brand)).size}</b><span>brands</span></div>
-              <div className="stat"><b>{foods.filter(f => f.fodmap_rating === 'Excellent').length}</b><span>FODMAP excellent</span></div>
+              <div className="stat"><b>{foods.filter(f => fodmapRank(f) === 0).length}</b><span>minimal FODMAP risk</span></div>
               <div className="stat"><b>{foods.filter(f => f.animal_band === 'High').length}</b><span>high animal-protein index</span></div>
             </div>
           )}
@@ -61,7 +62,7 @@ function App() {
       <footer>
         <div className="wrap">
           PURRNIVORE &mdash; scores computed from published ingredient decks &middot; not veterinary advice<br />
-          FODMAP rating is prebiotic-gated &middot; animal-protein index is a position-weighted heuristic, not a lab assay &middot; verify current labels before purchase
+          FODMAP risk is prebiotic-gated &middot; animal-protein index is a position-weighted heuristic, not a lab assay &middot; verify current labels before purchase
         </div>
       </footer>
     </>

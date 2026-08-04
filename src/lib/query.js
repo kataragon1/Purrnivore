@@ -2,6 +2,7 @@
 // custom requirement rules (filter) and custom sort both read from this.
 
 import { expandTerm } from './ingredientSynonyms'
+import { FODMAP_LEVELS, fodmapLabel } from './fodmapScale'
 
 export const FIELD_DEFS = [
   { key: 'brand', label: 'Brand', type: 'text' },
@@ -10,7 +11,7 @@ export const FIELD_DEFS = [
   { key: 'full_product_name', label: 'Product name', type: 'text' },
   { key: 'ingredients', label: 'Ingredients', type: 'text' },
   { key: 'form', label: 'Form', type: 'enum', options: ['dry', 'wet'] },
-  { key: 'fodmap_rating', label: 'FODMAP rating', type: 'ordinal', options: ['Excellent', 'Good', 'Moderate', 'Poor', 'Avoid'] },
+  { key: 'fodmap_rating', label: 'FODMAP risk', type: 'ordinal', options: FODMAP_LEVELS },
   { key: 'animal_idx', label: 'Animal index', type: 'number' },
   { key: 'protein', label: 'Protein %', type: 'number' },
   { key: 'kcal', label: 'Kcal / cup', type: 'number' },
@@ -57,7 +58,9 @@ export function defaultOperator(fieldKey) {
 export function evaluateRule(food, rule) {
   const field = FIELD_BY_KEY[rule.field]
   if (!field) return true
-  const value = food[rule.field]
+  // fodmap_rating is stored as legacy strings on old data / numeric rank on
+  // new data -- always resolve through the shared label helper so both work.
+  const value = rule.field === 'fodmap_rating' ? fodmapLabel(food) : food[rule.field]
 
   if (field.type === 'text') {
     const hay = (value ?? '').toString().toLowerCase()
@@ -124,8 +127,8 @@ export function compareBy(fieldKey, direction = 'desc') {
   const field = FIELD_BY_KEY[fieldKey]
   const dir = direction === 'asc' ? 1 : -1
   return (a, b) => {
-    const av = a[fieldKey]
-    const bv = b[fieldKey]
+    const av = fieldKey === 'fodmap_rating' ? fodmapLabel(a) : a[fieldKey]
+    const bv = fieldKey === 'fodmap_rating' ? fodmapLabel(b) : b[fieldKey]
     if (field?.type === 'ordinal') {
       const ar = field.options.indexOf(av)
       const br = field.options.indexOf(bv)

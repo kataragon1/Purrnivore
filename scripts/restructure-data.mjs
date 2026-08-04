@@ -6,8 +6,22 @@
 // Existing scores (fodmap_*, animal_idx, animal_band, fish_free, has_probiotic,
 // plant_protein_ct) are carried forward unchanged -- this script does not
 // recompute them, it only re-keys identity fields.
+//
+// KNOWN STALE / NOT YET RESEEDED (2026-08-04): this script now emits a
+// numeric `fodmap_rank` (0-4, via the legacy string->rank map in
+// src/lib/fodmapScale.js) instead of the old `fodmap_rating` string, so
+// display wording lives in one place going forward. The LIVE Firestore
+// `foods` collection has NOT been reseeded with this yet -- it still has
+// the old string field only. The app has a compatibility shim
+// (src/lib/fodmapScale.js) that derives rank from the legacy string, so
+// the site works fine either way. Don't bother reseeding just for this --
+// wait until the scraper/collection pass produces new raw data and the
+// real scorer module (still not built, see project memory) recomputes
+// everything, then this whole dataset gets regenerated anyway.
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+
+const LEGACY_FODMAP_RANK = { Excellent: 0, Good: 1, Moderate: 2, Poor: 3, Avoid: 4 }
 
 const foods = JSON.parse(readFileSync(new URL('../src/data/foods.json', import.meta.url)))
 
@@ -305,7 +319,7 @@ const restructured = foods.map((f, i) => {
     ingredients,
     notes: f.notes,
     fodmap_score: f.fodmap_score,
-    fodmap_rating: f.fodmap_rating,
+    fodmap_rank: LEGACY_FODMAP_RANK[f.fodmap_rating] ?? null,
     animal_idx: f.animal_idx,
     animal_band: f.animal_band,
     fish_free: f.fish_free,

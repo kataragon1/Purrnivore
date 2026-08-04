@@ -66,11 +66,11 @@ section{padding:var(--sp-5) 0}
 .chips{display:flex;flex-wrap:wrap;gap:5px}
 .chip{font-family:var(--sans);font-size:12px;font-weight:600;padding:5px 10px;border:1px solid var(--line);background:var(--paper);cursor:pointer;user-select:none;border-radius:var(--radius)}
 .chip.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-.chip.r-Excellent.on{background:var(--excellent);border-color:var(--excellent)}
-.chip.r-Good.on{background:var(--good);border-color:var(--good)}
-.chip.r-Moderate.on{background:var(--moderate);border-color:var(--moderate)}
-.chip.r-Poor.on{background:var(--poor);border-color:var(--poor)}
-.chip.r-Avoid.on{background:var(--avoid);border-color:var(--avoid)}
+.chip.r-rank-0.on{background:var(--excellent);border-color:var(--excellent)}
+.chip.r-rank-1.on{background:var(--good);border-color:var(--good)}
+.chip.r-rank-2.on{background:var(--moderate);border-color:var(--moderate)}
+.chip.r-rank-3.on{background:var(--poor);border-color:var(--poor)}
+.chip.r-rank-4.on{background:var(--avoid);border-color:var(--avoid)}
 .rangerow{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px}
 .rangerow input[type=range]{flex:1;accent-color:var(--accent)}
 .rangeval{min-width:42px;text-align:right;color:var(--accent);font-weight:600}
@@ -123,8 +123,8 @@ tbody tr:hover{background:#eef6f2}
 .food-name{font-weight:600;font-size:14px}
 .num{font-family:var(--mono);text-align:right;font-size:13px}
 .pill{font-family:var(--sans);font-size:10.5px;padding:3px 8px;border-radius:99px;color:#fff;text-transform:uppercase;letter-spacing:0.03em;font-weight:700;display:inline-block}
-.p-Excellent{background:var(--excellent)} .p-Good{background:var(--good)}
-.p-Moderate{background:var(--moderate)} .p-Poor{background:var(--poor)} .p-Avoid{background:var(--avoid)}
+.p-rank-0{background:var(--excellent)} .p-rank-1{background:var(--good)}
+.p-rank-2{background:var(--moderate)} .p-rank-3{background:var(--poor)} .p-rank-4{background:var(--avoid)}
 .band{font-family:var(--mono);font-size:11px}
 .empty{padding:60px 20px;text-align:center;color:var(--muted);font-family:var(--sans);font-size:13px}
 
