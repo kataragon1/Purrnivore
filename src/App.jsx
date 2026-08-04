@@ -9,9 +9,14 @@ function App() {
   const [tab, setTab] = useState('finder')
   const [foods, setFoods] = useState(null)
   const [error, setError] = useState(null)
+  const [version, setVersion] = useState(null)
 
   useEffect(() => {
     fetchFoods().then(setFoods).catch(e => setError(e.message))
+  }, [])
+
+  useEffect(() => {
+    fetch(`${import.meta.env.BASE_URL}version.json`).then(r => r.json()).then(v => setVersion(v.version)).catch(() => {})
   }, [])
 
   return (
@@ -20,7 +25,7 @@ function App() {
         <div className="wrap">
           <div className="masthead">
             <div>
-              <div className="logo"><span className="paw">🐾</span>Purrnivore <span className="idx">v0.1</span></div>
+              <div className="logo"><span className="paw">🐾</span>Purrnivore {version && <span className="idx">v{version}</span>}</div>
             </div>
             <div className="tagline">Feline food scoring for sensitive bellies</div>
           </div>
@@ -41,7 +46,7 @@ function App() {
               <div className="stat"><b>{foods.length}</b><span>foods scored</span></div>
               <div className="stat"><b>{new Set(foods.map(f => f.brand)).size}</b><span>brands</span></div>
               <div className="stat"><b>{foods.filter(f => f.fodmap_rating === 'Excellent').length}</b><span>FODMAP excellent</span></div>
-              <div className="stat"><b>{foods.filter(f => f.animal_band === 'High').length}</b><span>high animal-protein</span></div>
+              <div className="stat"><b>{foods.filter(f => f.animal_band === 'High').length}</b><span>high animal-protein index</span></div>
             </div>
           )}
         </div>
