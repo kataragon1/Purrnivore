@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import AdvancedSearch from './AdvancedSearch'
-import { evaluateRules, compareBy, compareWithTiebreak } from '../lib/query'
+import { evaluateRules, compareBy, compareWithTiebreak, FIELD_BY_KEY } from '../lib/query'
 import { buildIngredientVocabulary } from '../lib/ingredientVocab'
 
 const ORDER = { Excellent: 0, Good: 1, Moderate: 2, Poor: 3, Avoid: 4 }
@@ -185,7 +185,7 @@ export default function Finder({ foods }) {
           <div className="results-head">
             <div className="count"><b>{results.length}</b> {view} foods match</div>
             <select className="sortsel" value={sortKey} onChange={e => setSortKey(e.target.value)}>
-              <option value="fodmap">Sort: FODMAP (best first)</option>
+              <option value="fodmap">Sort: FODMAP (lowest fermentable-load first)</option>
               <option value="animal">Sort: Animal index (high first)</option>
               <option value="protein">Sort: {proteinLabel(view)} (high first)</option>
               {view === 'dry' && <option value="kcal_lo">Sort: Calories (low first)</option>}
@@ -238,10 +238,16 @@ export default function Finder({ foods }) {
                 <div className="metric"><span>{proteinLabel(selected.form)}</span><b>{proteinValue(selected, selected.form) ?? '–'}%</b></div>
                 <div className="metric"><span>Kcal/cup</span><b>{selected.form === 'dry' ? (selected.kcal ?? '–') : 'n/a'}</b></div>
               </div>
-              <div className="flags">
-                <span className={`flag ${selected.fish_free ? 'yes' : 'no'}`}>{selected.fish_free ? '✓' : '✗'} fish-free</span>
-                <span className={`flag ${selected.has_probiotic ? 'no' : 'yes'}`}>{selected.has_probiotic ? 'contains' : 'no'} probiotic</span>
-              </div>
+              {customRules.filter(r => FIELD_BY_KEY[r.field]?.type === 'boolean' && r.value !== '').length > 0 && (
+                <div className="flags">
+                  {customRules.filter(r => FIELD_BY_KEY[r.field]?.type === 'boolean' && r.value !== '').map(r => {
+                    const on = Boolean(selected[r.field])
+                    return (
+                      <span key={r.id} className={`flag ${on ? 'yes' : 'no'}`}>{on ? '✓' : '✗'} {FIELD_BY_KEY[r.field].label.toLowerCase()}</span>
+                    )
+                  })}
+                </div>
+              )}
               <div className="detail-label">
                 Ingredients <span style={{ color: 'var(--muted)', textTransform: 'none', letterSpacing: 0 }}>(fermentable additives highlighted)</span>
               </div>

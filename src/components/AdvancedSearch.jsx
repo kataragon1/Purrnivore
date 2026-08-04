@@ -8,7 +8,7 @@ function blankRule() {
 
 function RuleValueInput({ rule, onChange, ingredientVocab }) {
   const field = FIELD_BY_KEY[rule.field]
-  if (field.type === 'enum') {
+  if (field.type === 'enum' || field.type === 'ordinal') {
     return (
       <select value={rule.value} onChange={e => onChange({ ...rule, value: e.target.value })}>
         <option value="">choose&hellip;</option>

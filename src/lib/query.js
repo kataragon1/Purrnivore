@@ -10,7 +10,7 @@ export const FIELD_DEFS = [
   { key: 'full_product_name', label: 'Product name', type: 'text' },
   { key: 'ingredients', label: 'Ingredients', type: 'text' },
   { key: 'form', label: 'Form', type: 'enum', options: ['dry', 'wet'] },
-  { key: 'fodmap_rating', label: 'FODMAP rating', type: 'enum', options: ['Excellent', 'Good', 'Moderate', 'Poor', 'Avoid'] },
+  { key: 'fodmap_rating', label: 'FODMAP rating', type: 'ordinal', options: ['Excellent', 'Good', 'Moderate', 'Poor', 'Avoid'] },
   { key: 'animal_idx', label: 'Animal index', type: 'number' },
   { key: 'protein', label: 'Protein %', type: 'number' },
   { key: 'kcal', label: 'Kcal / cup', type: 'number' },
@@ -37,6 +37,12 @@ export const OPERATORS_BY_TYPE = {
   enum: [
     { key: 'is', label: 'is' },
     { key: 'is_not', label: 'is not' },
+  ],
+  ordinal: [
+    { key: 'is', label: 'is exactly' },
+    { key: 'is_not', label: 'is not' },
+    { key: 'better_or_eq', label: 'is (this or better)' },
+    { key: 'worse_or_eq', label: 'is (this or worse)' },
   ],
   boolean: [
     { key: 'is', label: 'is' },
@@ -86,6 +92,20 @@ export function evaluateRule(food, rule) {
     return rule.operator === 'is_not' ? !is : is
   }
 
+  if (field.type === 'ordinal') {
+    if (!rule.value) return true
+    // Rank 0 = best (options are listed best-to-worst).
+    const actualRank = field.options.indexOf(value)
+    const targetRank = field.options.indexOf(rule.value)
+    if (actualRank === -1) return false
+    switch (rule.operator) {
+      case 'is_not': return actualRank !== targetRank
+      case 'better_or_eq': return actualRank <= targetRank
+      case 'worse_or_eq': return actualRank >= targetRank
+      default: return actualRank === targetRank
+    }
+  }
+
   if (field.type === 'boolean') {
     if (rule.value === '' || rule.value == null) return true
     const target = rule.value === 'true'
@@ -106,6 +126,11 @@ export function compareBy(fieldKey, direction = 'desc') {
   return (a, b) => {
     const av = a[fieldKey]
     const bv = b[fieldKey]
+    if (field?.type === 'ordinal') {
+      const ar = field.options.indexOf(av)
+      const br = field.options.indexOf(bv)
+      return dir * ((ar === -1 ? field.options.length : ar) - (br === -1 ? field.options.length : br))
+    }
     if (field?.type === 'text' || field?.type === 'enum') {
       return dir * (av ?? '').toString().localeCompare((bv ?? '').toString())
     }
