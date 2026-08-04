@@ -20,6 +20,8 @@
     "@vitejs/plugin-react": "^6.0.4",
     "firebase-admin": "^14.2.0",
     "oxlint": "^1.75.0",
+    "playwright": "^1.62.1",
+    "unpdf": "^1.8.0",
     "vite": "^8.2.0"
   }
 }

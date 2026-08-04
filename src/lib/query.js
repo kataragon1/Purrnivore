@@ -3,6 +3,7 @@
 
 import { expandTerm } from './ingredientSynonyms'
 import { FODMAP_LEVELS, fodmapLabel } from './fodmapScale'
+import { ALLERGEN_CATEGORIES, CATEGORY_BY_LABEL } from './ingredientCategories'
 
 export const FIELD_DEFS = [
   { key: 'brand', label: 'Brand', type: 'text' },
@@ -10,6 +11,7 @@ export const FIELD_DEFS = [
   { key: 'sub_brand', label: 'Sub-brand', type: 'text' },
   { key: 'full_product_name', label: 'Product name', type: 'text' },
   { key: 'ingredients', label: 'Ingredients', type: 'text' },
+  { key: 'ingredient_category', label: 'Ingredient category (allergen-aware)', type: 'category', options: ALLERGEN_CATEGORIES.map(c => c.label) },
   { key: 'form', label: 'Form', type: 'enum', options: ['dry', 'wet'] },
   { key: 'fodmap_rating', label: 'FODMAP risk', type: 'ordinal', options: FODMAP_LEVELS },
   { key: 'animal_idx', label: 'Animal index', type: 'number' },
@@ -47,6 +49,10 @@ export const OPERATORS_BY_TYPE = {
   ],
   boolean: [
     { key: 'is', label: 'is' },
+  ],
+  category: [
+    { key: 'excludes', label: 'excludes all of' },
+    { key: 'includes', label: 'includes any of' },
   ],
 }
 
@@ -113,6 +119,19 @@ export function evaluateRule(food, rule) {
     if (rule.value === '' || rule.value == null) return true
     const target = rule.value === 'true'
     return Boolean(value) === target
+  }
+
+  if (field.type === 'category') {
+    if (!rule.value) return true
+    const category = CATEGORY_BY_LABEL[rule.value]
+    if (!category) return true
+    const hay = (food.ingredients ?? '').toString().toLowerCase()
+    // Each category term also gets synonym-expanded, so "fish" catches every
+    // curated species PLUS any spelling variant of each (e.g. menhaden fish
+    // meal vs menhaden fish oil are separate ingredient list entries but both
+    // match the plain substring "menhaden" already).
+    const has = category.terms.some(term => hay.includes(term))
+    return rule.operator === 'excludes' ? !has : has
   }
 
   return true
