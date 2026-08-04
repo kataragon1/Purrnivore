@@ -54,6 +54,7 @@ function AnimalMeter({ value, band }) {
 export default function Finder({ foods }) {
   const [view, setView] = useState('dry')
   const [query, setQuery] = useState('')
+  const [searchScope, setSearchScope] = useState('all')
   const [fodmapOn, setFodmapOn] = useState([])
   const [minAnimal, setMinAnimal] = useState(0)
   const [maxKcal, setMaxKcal] = useState(600)
@@ -75,6 +76,7 @@ export default function Finder({ foods }) {
 
   function resetFilters() {
     setQuery('')
+    setSearchScope('all')
     setFodmapOn([])
     setMinAnimal(0)
     setMaxKcal(600)
@@ -86,7 +88,9 @@ export default function Finder({ foods }) {
     const out = foods.filter(f => {
       if (categoryOf(f) !== view) return false
       if (q) {
-        const hay = ((f.brand || '') + ' ' + (f.full_product_name || '') + ' ' + (f.ingredients || '')).toLowerCase()
+        const hay = searchScope === 'names'
+          ? ((f.brand || '') + ' ' + (f.full_product_name || '')).toLowerCase()
+          : ((f.brand || '') + ' ' + (f.full_product_name || '') + ' ' + (f.ingredients || '')).toLowerCase()
         if (!hay.includes(q)) return false
       }
       if (fodmapOn.length && !fodmapOn.includes(f.fodmap_rating)) return false
@@ -115,7 +119,7 @@ export default function Finder({ foods }) {
       })
     }
     return out
-  }, [foods, view, query, fodmapOn, minAnimal, maxKcal, minProtein, sortKey, customRules, customSort, customTiebreak])
+  }, [foods, view, query, searchScope, fodmapOn, minAnimal, maxKcal, minProtein, sortKey, customRules, customSort, customTiebreak])
 
   return (
     <section className="wrap">
@@ -135,6 +139,10 @@ export default function Finder({ foods }) {
               value={query}
               onChange={e => setQuery(e.target.value)}
             />
+            <div className="chips">
+              <span className={`chip${searchScope === 'names' ? ' on' : ''}`} onClick={() => setSearchScope('names')}>Names only</span>
+              <span className={`chip${searchScope === 'all' ? ' on' : ''}`} onClick={() => setSearchScope('all')}>Names + ingredients</span>
+            </div>
           </div>
           <div className="fgroup">
             <label>FODMAP rating</label>

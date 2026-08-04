@@ -100,7 +100,7 @@ section{padding:var(--sp-5) 0}
 /* animal-index meter */
 .meter{display:inline-flex;align-items:center;gap:6px}
 .meter-track{width:44px;height:6px;background:var(--line);border-radius:99px;overflow:hidden;flex-shrink:0}
-.meter-fill{height:100%;border-radius:99px}
+.meter-fill{display:block;height:100%;border-radius:99px}
 .meter-fill.band-High{background:var(--excellent)}
 .meter-fill.band-Mod{background:var(--moderate)}
 .meter-fill.band-Low{background:var(--poor)}
