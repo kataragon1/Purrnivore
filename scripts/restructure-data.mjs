@@ -230,6 +230,14 @@ function repairIngredientsSpillover(record) {
   return { fullProductName: clean(m[1]), ingredients: clean(m[2]) }
 }
 
+// Heuristic flag for treats/toppers that snuck into the "wet"/"dry" complete-
+// food seed (e.g. Catit lickable purees, ORIJEN FD Treats). Not a hard
+// exclude -- confidence isn't high enough for that -- just a review flag.
+const TREAT_KEYWORDS = /\btreats?\b|\blickable\b|\btoppers?\b|\bpur[ée]e\b|\bsticks?\b/i
+function isLikelyTreat(fullProductName) {
+  return TREAT_KEYWORDS.test(fullProductName || '')
+}
+
 function slugify(...parts) {
   return parts
     .filter(Boolean)
@@ -268,6 +276,7 @@ const restructured = foods.map((f, i) => {
   const subBrand = subBrandFor(brand, rawBrand.toLowerCase(), fullProductName)
   const owner = OWNERS[brand] ?? 'Unknown'
   const form = f.type
+  const likelyTreat = isLikelyTreat(fullProductName)
 
   ownerCounts[owner] = (ownerCounts[owner] || 0) + 1
   const sbKey = `${brand}${subBrand ? ' > ' + subBrand : ''}`
@@ -303,6 +312,7 @@ const restructured = foods.map((f, i) => {
     has_probiotic: f.has_probiotic,
     plant_protein_ct: f.plant_protein_ct,
     ...(needsReview ? { needs_review: true } : {}),
+    ...(likelyTreat ? { likely_treat: true } : {}),
   }
 })
 
@@ -330,4 +340,10 @@ const flagged = restructured.filter(r => r.needs_review)
 if (flagged.length) {
   console.log(`\n${flagged.length} record(s) flagged needs_review:`)
   for (const r of flagged) console.log(`  - ${r.food_id}`)
+}
+
+const treats = restructured.filter(r => r.likely_treat)
+if (treats.length) {
+  console.log(`\n${treats.length} record(s) flagged likely_treat (keyword heuristic, review before trusting):`)
+  for (const r of treats) console.log(`  - ${r.food_id}`)
 }

@@ -34,8 +34,8 @@ function App() {
 
       <div className="wrap">
         <div className="intro">
-          <h1>Find cat foods that won&rsquo;t feed a bacterial overgrowth.</h1>
-          <p>A scored database of commercial cat foods, built for cats with SIBO, IBD, or chronic dysbiosis &mdash; where the usual &ldquo;high-protein&rdquo; and &ldquo;gastrointestinal&rdquo; labels can be actively misleading. Every food is rated on two axes the bag never shows you: how much of its protein is genuinely <em>animal</em>, and whether it contains the <em>purified prebiotics</em> that ferment in an overgrown gut.</p>
+          <h1>Find cat food that actually fits your cat&rsquo;s restrictions.</h1>
+          <p>A scored, searchable database of commercial cat foods &mdash; built so you can search on whatever <em>your</em> cat&rsquo;s diet actually requires, not just the handful of filters a pet store gives you. Started for cats with SIBO, IBD, or chronic dysbiosis, where the usual &ldquo;high-protein&rdquo; and &ldquo;gastrointestinal&rdquo; labels can be actively misleading, but built to flex to other restrictions too: how much of a food&rsquo;s protein is genuinely <em>animal</em> vs. plant concentrate, whether it contains <em>purified prebiotics</em> that ferment in an overgrown gut, or whatever else you need to rule in or out.</p>
           {foods && (
             <div className="stat-row">
               <div className="stat"><b>{foods.length}</b><span>foods scored</span></div>

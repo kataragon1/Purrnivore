@@ -50,6 +50,12 @@ section{padding:var(--sp-5) 0}
 }
 .cat-loader-label{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:0.06em}
 
+/* view tabs (dry / wet / treats) */
+.view-tabs{display:flex;gap:6px;margin-bottom:var(--sp-4)}
+.view-tabs button{font-family:var(--sans);font-size:13px;font-weight:700;padding:9px 18px;border:1px solid var(--line);border-radius:99px;background:var(--panel);cursor:pointer;color:var(--muted)}
+.view-tabs button.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.view-tabs button:hover:not(.active){border-color:var(--accent);color:var(--accent)}
+
 /* finder layout */
 .finder{display:grid;grid-template-columns:264px 1fr;gap:var(--sp-5);align-items:start}
 .filters{position:sticky;top:14px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:var(--sp-4)}
