@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import Finder from './components/Finder'
 import Method from './components/Method'
 import About from './components/About'
+import CatLoader from './components/CatLoader'
 import { fetchFoods } from './lib/firebase'
 
 function App() {
@@ -19,9 +20,9 @@ function App() {
         <div className="wrap">
           <div className="masthead">
             <div>
-              <div className="logo">Purrnivore <span className="idx">v0.1</span></div>
+              <div className="logo"><span className="paw">🐾</span>Purrnivore <span className="idx">v0.1</span></div>
             </div>
-            <div className="tagline">Feline food scoring for sensitive guts</div>
+            <div className="tagline">Feline food scoring for sensitive bellies</div>
           </div>
           <nav className="tabs">
             <button className={tab === 'finder' ? 'active' : ''} onClick={() => setTab('finder')}>Finder</button>
@@ -47,7 +48,7 @@ function App() {
       </div>
 
       {tab === 'finder' && error && <div className="wrap"><p>Couldn&rsquo;t load foods from Firestore: {error}</p></div>}
-      {tab === 'finder' && !foods && !error && <div className="wrap"><p>Loading&hellip;</p></div>}
+      {tab === 'finder' && !foods && !error && <div className="wrap"><CatLoader /></div>}
       {tab === 'finder' && foods && <Finder foods={foods} />}
       {tab === 'method' && <Method />}
       {tab === 'about' && <About />}

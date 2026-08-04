@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import AdvancedSearch from './AdvancedSearch'
+import { evaluateRules, compareBy, compareWithTiebreak } from '../lib/query'
 
 const ORDER = { Excellent: 0, Good: 1, Moderate: 2, Poor: 3, Avoid: 4 }
 const FODMAP_RATINGS = ['Excellent', 'Good', 'Moderate', 'Poor', 'Avoid']
@@ -19,6 +21,16 @@ function toggleValue(list, val) {
   return list.includes(val) ? list.filter(v => v !== val) : [...list, val]
 }
 
+function AnimalMeter({ value, band }) {
+  const pct = value == null ? 0 : Math.max(0, Math.min(100, value))
+  return (
+    <span className="meter">
+      <span className="meter-track"><span className={`meter-fill band-${band}`} style={{ width: `${pct}%` }} /></span>
+      <span className="meter-num">{value ?? '–'}</span>
+    </span>
+  )
+}
+
 export default function Finder({ foods }) {
   const [query, setQuery] = useState('')
   const [fodmapOn, setFodmapOn] = useState([])
@@ -30,6 +42,9 @@ export default function Finder({ foods }) {
   const [noProbiotic, setNoProbiotic] = useState(false)
   const [sortKey, setSortKey] = useState('fodmap')
   const [selected, setSelected] = useState(null)
+  const [customRules, setCustomRules] = useState([])
+  const [customSort, setCustomSort] = useState(null)
+  const [customTiebreak, setCustomTiebreak] = useState(null)
 
   useEffect(() => {
     function onKeyDown(e) {
@@ -64,21 +79,28 @@ export default function Finder({ foods }) {
       if (minProtein > 0 && (f.protein == null || f.protein < minProtein)) return false
       if (fishFree && !f.fish_free) return false
       if (noProbiotic && f.has_probiotic) return false
+      if (customRules.length && !evaluateRules(f, customRules)) return false
       return true
     })
-    out.sort((a, b) => {
-      switch (sortKey) {
-        case 'fodmap': return (ORDER[a.fodmap_rating] - ORDER[b.fodmap_rating]) || ((b.animal_idx || 0) - (a.animal_idx || 0))
-        case 'animal': return (b.animal_idx || 0) - (a.animal_idx || 0)
-        case 'protein': return (b.protein || 0) - (a.protein || 0)
-        case 'kcal_lo': return (a.kcal || 9999) - (b.kcal || 9999)
-        case 'kcal_hi': return (b.kcal || 0) - (a.kcal || 0)
-        case 'brand': return (a.brand || '').localeCompare(b.brand || '')
-        default: return 0
-      }
-    })
+    if (customSort) {
+      const primary = compareBy(customSort.field, customSort.dir)
+      const secondary = customTiebreak ? compareBy(customTiebreak.field, customTiebreak.dir) : null
+      out.sort(compareWithTiebreak(primary, secondary))
+    } else {
+      out.sort((a, b) => {
+        switch (sortKey) {
+          case 'fodmap': return (ORDER[a.fodmap_rating] - ORDER[b.fodmap_rating]) || ((b.animal_idx || 0) - (a.animal_idx || 0))
+          case 'animal': return (b.animal_idx || 0) - (a.animal_idx || 0)
+          case 'protein': return (b.protein || 0) - (a.protein || 0)
+          case 'kcal_lo': return (a.kcal || 9999) - (b.kcal || 9999)
+          case 'kcal_hi': return (b.kcal || 0) - (a.kcal || 0)
+          case 'brand': return (a.brand || '').localeCompare(b.brand || '')
+          default: return 0
+        }
+      })
+    }
     return out
-  }, [foods, query, fodmapOn, typeOn, minAnimal, maxKcal, minProtein, fishFree, noProbiotic, sortKey])
+  }, [foods, query, fodmapOn, typeOn, minAnimal, maxKcal, minProtein, fishFree, noProbiotic, sortKey, customRules, customSort, customTiebreak])
 
   return (
     <section className="wrap">
@@ -146,6 +168,15 @@ export default function Finder({ foods }) {
             </label>
           </div>
           <button className="reset" onClick={resetFilters}>Reset all filters</button>
+
+          <AdvancedSearch
+            rules={customRules}
+            onRulesChange={setCustomRules}
+            sort={customSort}
+            onSortChange={setCustomSort}
+            tiebreak={customTiebreak}
+            onTiebreakChange={setCustomTiebreak}
+          />
         </aside>
 
         <div className="results">
@@ -176,7 +207,7 @@ export default function Finder({ foods }) {
                 <tr key={i} onClick={() => setSelected(f)}>
                   <td><div className="food-brand">{f.brand}</div><div className="food-name">{f.full_product_name}</div></td>
                   <td><span className={`pill p-${f.fodmap_rating}`}>{f.fodmap_rating}</span></td>
-                  <td><span className={`band band-${f.animal_band}`}>{f.animal_idx ?? '–'} {f.animal_band ? `· ${f.animal_band}` : ''}</span></td>
+                  <td><AnimalMeter value={f.animal_idx} band={f.animal_band} /></td>
                   <td className="num">{f.protein ?? '–'}</td>
                   <td className="num">{f.kcal ?? '–'}</td>
                   <td className="band">{f.form}</td>
@@ -203,7 +234,7 @@ export default function Finder({ foods }) {
             <div className="modal-body">
               <div className="metrics">
                 <div className="metric"><span>FODMAP</span><b>{selected.fodmap_rating}</b></div>
-                <div className="metric"><span>Animal idx</span><b>{selected.animal_idx ?? '–'}</b></div>
+                <div className="metric"><span>Animal idx</span><b><AnimalMeter value={selected.animal_idx} band={selected.animal_band} /></b></div>
                 <div className="metric"><span>Protein</span><b>{selected.protein ?? '–'}%</b></div>
                 <div className="metric"><span>Kcal/cup</span><b>{selected.kcal ?? '–'}</b></div>
               </div>
