@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import AdvancedSearch from './AdvancedSearch'
 import { evaluateRules, compareBy, compareWithTiebreak } from '../lib/query'
+import { buildIngredientVocabulary } from '../lib/ingredientVocab'
 
 const ORDER = { Excellent: 0, Good: 1, Moderate: 2, Poor: 3, Avoid: 4 }
 const FODMAP_RATINGS = ['Excellent', 'Good', 'Moderate', 'Poor', 'Avoid']
@@ -45,6 +46,7 @@ export default function Finder({ foods }) {
   const [customRules, setCustomRules] = useState([])
   const [customSort, setCustomSort] = useState(null)
   const [customTiebreak, setCustomTiebreak] = useState(null)
+  const ingredientVocab = useMemo(() => buildIngredientVocabulary(foods), [foods])
 
   useEffect(() => {
     function onKeyDown(e) {
@@ -176,6 +178,7 @@ export default function Finder({ foods }) {
             onSortChange={setCustomSort}
             tiebreak={customTiebreak}
             onTiebreakChange={setCustomTiebreak}
+            ingredientVocab={ingredientVocab}
           />
         </aside>
 

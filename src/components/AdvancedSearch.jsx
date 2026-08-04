@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { FIELD_DEFS, FIELD_BY_KEY, OPERATORS_BY_TYPE, defaultOperator } from '../lib/query'
+import { SYNONYM_GROUPS, synonymGroupFor } from '../lib/ingredientSynonyms'
 
 function blankRule() {
   return { id: Math.random().toString(36).slice(2), field: 'ingredients', operator: 'not_contains', value: '' }
 }
 
-function RuleValueInput({ rule, onChange }) {
+function RuleValueInput({ rule, onChange, ingredientVocab }) {
   const field = FIELD_BY_KEY[rule.field]
   if (field.type === 'enum') {
     return (
@@ -24,10 +25,21 @@ function RuleValueInput({ rule, onChange }) {
       </select>
     )
   }
+  if (rule.field === 'ingredients') {
+    return (
+      <input
+        type="text"
+        list="ingredient-vocab"
+        placeholder="e.g. FOS — start typing to see what's in the data"
+        value={rule.value}
+        onChange={e => onChange({ ...rule, value: e.target.value })}
+      />
+    )
+  }
   return (
     <input
       type={field.type === 'number' ? 'number' : 'text'}
-      placeholder={field.type === 'number' ? '0' : 'e.g. FOS'}
+      placeholder={field.type === 'number' ? '0' : 'value'}
       value={rule.value}
       onChange={e => onChange({ ...rule, value: e.target.value })}
     />
@@ -38,8 +50,14 @@ export default function AdvancedSearch({
   rules, onRulesChange,
   sort, onSortChange,
   tiebreak, onTiebreakChange,
+  ingredientVocab = [],
 }) {
   const [open, setOpen] = useState(false)
+
+  const vocabOptions = useMemo(() => {
+    const groupTerms = SYNONYM_GROUPS.flatMap(g => g.terms)
+    return [...new Set([...groupTerms, ...ingredientVocab])]
+  }, [ingredientVocab])
 
   function addRule() {
     onRulesChange([...rules, blankRule()])
@@ -72,21 +90,32 @@ export default function AdvancedSearch({
         <div className="adv-panel">
           <div>
             <div className="adv-sub">Custom requirements (all must match)</div>
-            {rules.map(rule => (
-              <div className="adv-rule" key={rule.id}>
-                <select value={rule.field} onChange={e => setRuleField(rule.id, e.target.value)}>
-                  {FIELD_DEFS.map(f => <option key={f.key} value={f.key}>{f.label}</option>)}
-                </select>
-                <select value={rule.operator} onChange={e => updateRule(rule.id, { ...rule, operator: e.target.value })}>
-                  {OPERATORS_BY_TYPE[FIELD_BY_KEY[rule.field].type].map(op => (
-                    <option key={op.key} value={op.key}>{op.label}</option>
-                  ))}
-                </select>
-                <RuleValueInput rule={rule} onChange={next => updateRule(rule.id, next)} />
-                <button className="rm" onClick={() => removeRule(rule.id)} title="Remove requirement">&times;</button>
-              </div>
-            ))}
+            {rules.map(rule => {
+              const synonymGroup = rule.field === 'ingredients' ? synonymGroupFor(rule.value) : null
+              return (
+                <div key={rule.id}>
+                  <div className="adv-rule">
+                    <select value={rule.field} onChange={e => setRuleField(rule.id, e.target.value)}>
+                      {FIELD_DEFS.map(f => <option key={f.key} value={f.key}>{f.label}</option>)}
+                    </select>
+                    <select value={rule.operator} onChange={e => updateRule(rule.id, { ...rule, operator: e.target.value })}>
+                      {OPERATORS_BY_TYPE[FIELD_BY_KEY[rule.field].type].map(op => (
+                        <option key={op.key} value={op.key}>{op.label}</option>
+                      ))}
+                    </select>
+                    <RuleValueInput rule={rule} onChange={next => updateRule(rule.id, next)} ingredientVocab={vocabOptions} />
+                    <button className="rm" onClick={() => removeRule(rule.id)} title="Remove requirement">&times;</button>
+                  </div>
+                  {synonymGroup && (
+                    <div className="adv-hint">Also matches: {synonymGroup.terms.filter(t => t !== rule.value.toLowerCase().trim()).join(', ')}</div>
+                  )}
+                </div>
+              )
+            })}
             <button className="adv-add" onClick={addRule}>+ Add requirement</button>
+            <datalist id="ingredient-vocab">
+              {vocabOptions.map(term => <option key={term} value={term} />)}
+            </datalist>
           </div>
 
           <div>

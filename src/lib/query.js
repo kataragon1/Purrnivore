@@ -1,6 +1,8 @@
 // Shared field metadata + evaluators for the Advanced Search builder:
 // custom requirement rules (filter) and custom sort both read from this.
 
+import { expandTerm } from './ingredientSynonyms'
+
 export const FIELD_DEFS = [
   { key: 'brand', label: 'Brand', type: 'text' },
   { key: 'owner', label: 'Owner', type: 'text' },
@@ -53,9 +55,12 @@ export function evaluateRule(food, rule) {
 
   if (field.type === 'text') {
     const hay = (value ?? '').toString().toLowerCase()
-    const needle = (rule.value ?? '').toString().toLowerCase().trim()
-    if (!needle) return true
-    const has = hay.includes(needle)
+    const rawNeedle = (rule.value ?? '').toString().trim()
+    if (!rawNeedle) return true
+    // Ingredient terms get synonym-expanded (e.g. "FOS" also matches
+    // "fructooligosaccharide") so decks that spell it differently still match.
+    const needles = rule.field === 'ingredients' ? expandTerm(rawNeedle) : [rawNeedle.toLowerCase()]
+    const has = needles.some(n => hay.includes(n))
     return rule.operator === 'not_contains' ? !has : has
   }
 
