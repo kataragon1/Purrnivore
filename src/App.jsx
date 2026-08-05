@@ -26,7 +26,7 @@ function App() {
         <div className="wrap">
           <div className="masthead">
             <div>
-              <div className="logo"><span className="paw">🐾</span><span className="lc-the">the</span> Whisker Dish {version && <span className="idx">v{version}</span>}</div>
+              <div className="logo"><span className="paw">🐾</span><span className="lc-the">the</span>WhiskerDish {version && <span className="idx">v{version}</span>}</div>
             </div>
             <div className="tagline">The real dish on what&rsquo;s in the bowl</div>
           </div>
@@ -40,7 +40,7 @@ function App() {
 
       <div className="wrap">
         <div className="intro">
-          <h1>Find cat food that actually fits your cat&rsquo;s restrictions.</h1>
+          <h1>Find the food that actually fits your cat.</h1>
           <p>A scored, searchable database of commercial cat foods &mdash; built so you can search on whatever <em>your</em> cat&rsquo;s diet actually requires, not just the handful of filters a pet store gives you. Diabetic, kidney, urinary, weight management, IBD, food-sensitive, or just curious what&rsquo;s really in the bag: how much of a food&rsquo;s protein is genuinely <em>animal</em> vs. plant concentrate, whether it contains <em>purified prebiotics</em> that ferment in a sensitive gut, who actually makes it, or whatever else you need to rule in or out.</p>
           {foods && (
             <div className="stat-row">
@@ -61,7 +61,7 @@ function App() {
 
       <footer>
         <div className="wrap">
-          THE WHISKER DISH &mdash; scores computed from published ingredient decks &middot; not veterinary advice<br />
+          theWhiskerDish &mdash; scores computed from published ingredient decks &middot; not veterinary advice<br />
           FODMAP risk is prebiotic-gated &middot; animal-protein index is a position-weighted heuristic, not a lab assay &middot; verify current labels before purchase
         </div>
       </footer>

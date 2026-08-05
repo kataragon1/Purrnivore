@@ -1,4 +1,4 @@
-# the Whisker Dish
+# theWhiskerDish
 
 A searchable database of commercial cat foods — search on whatever your cat's diet actually requires (diabetic, kidney, urinary, weight, IBD, food-sensitive, or just curious what's really in the bag), not just the handful of filters a pet store gives you. Two built-in scoring axes: **FODMAP risk** (does it contain fermentable prebiotics/legumes) and **animal-protein index** (how much of the protein is genuinely animal vs. plant concentrate), plus a generic Advanced Search builder for anything else. Built with React + Vite + Firestore.
 
