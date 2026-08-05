@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "purrnivore-dev",
+      "name": "whisker-dish-dev",
       "runtimeExecutable": "C:\\Users\\katar\\OneDrive\\Documents\\GitHub\\Purrnivore\\dev.cmd",
       "runtimeArgs": [],
       "port": 5173

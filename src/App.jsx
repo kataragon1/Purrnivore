@@ -26,9 +26,9 @@ function App() {
         <div className="wrap">
           <div className="masthead">
             <div>
-              <div className="logo"><span className="paw">🐾</span>Purrnivore {version && <span className="idx">v{version}</span>}</div>
+              <div className="logo"><span className="paw">🐾</span><span className="lc-the">the</span> Whisker Dish {version && <span className="idx">v{version}</span>}</div>
             </div>
-            <div className="tagline">Feline food scoring for sensitive bellies</div>
+            <div className="tagline">The real dish on what&rsquo;s in the bowl</div>
           </div>
           <nav className="tabs">
             <button className={tab === 'finder' ? 'active' : ''} onClick={() => setTab('finder')}>Finder</button>
@@ -41,7 +41,7 @@ function App() {
       <div className="wrap">
         <div className="intro">
           <h1>Find cat food that actually fits your cat&rsquo;s restrictions.</h1>
-          <p>A scored, searchable database of commercial cat foods &mdash; built so you can search on whatever <em>your</em> cat&rsquo;s diet actually requires, not just the handful of filters a pet store gives you. Started for cats with SIBO, IBD, or chronic dysbiosis, where the usual &ldquo;high-protein&rdquo; and &ldquo;gastrointestinal&rdquo; labels can be actively misleading, but built to flex to other restrictions too: how much of a food&rsquo;s protein is genuinely <em>animal</em> vs. plant concentrate, whether it contains <em>purified prebiotics</em> that ferment in an overgrown gut, or whatever else you need to rule in or out.</p>
+          <p>A scored, searchable database of commercial cat foods &mdash; built so you can search on whatever <em>your</em> cat&rsquo;s diet actually requires, not just the handful of filters a pet store gives you. Diabetic, kidney, urinary, weight management, IBD, food-sensitive, or just curious what&rsquo;s really in the bag: how much of a food&rsquo;s protein is genuinely <em>animal</em> vs. plant concentrate, whether it contains <em>purified prebiotics</em> that ferment in a sensitive gut, who actually makes it, or whatever else you need to rule in or out.</p>
           {foods && (
             <div className="stat-row">
               <div className="stat"><b>{foods.length}</b><span>foods scored</span></div>
@@ -61,7 +61,7 @@ function App() {
 
       <footer>
         <div className="wrap">
-          PURRNIVORE &mdash; scores computed from published ingredient decks &middot; not veterinary advice<br />
+          THE WHISKER DISH &mdash; scores computed from published ingredient decks &middot; not veterinary advice<br />
           FODMAP risk is prebiotic-gated &middot; animal-protein index is a position-weighted heuristic, not a lab assay &middot; verify current labels before purchase
         </div>
       </footer>

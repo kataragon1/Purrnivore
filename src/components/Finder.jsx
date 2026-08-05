@@ -40,6 +40,33 @@ function toggleValue(list, val) {
   return list.includes(val) ? list.filter(v => v !== val) : [...list, val]
 }
 
+// Sortable table columns. Click a header: if it's already the primary sort
+// column, flip its direction; otherwise it becomes primary (moved to front)
+// and everything else falls back to tiebreaker order. Drag a header to
+// reorder sort priority directly.
+const DEFAULT_COLUMN_ORDER = ['fodmap', 'brand', 'animal', 'protein', 'kcal']
+const DEFAULT_COLUMN_DIR = { fodmap: 'asc', brand: 'asc', animal: 'desc', protein: 'desc', kcal: 'asc' }
+const COLUMN_LABELS = { brand: 'Food', fodmap: 'FODMAP risk', animal: 'Animal', kcal: 'Kcal' }
+
+function columnValue(key, f, view) {
+  switch (key) {
+    case 'brand': return f.brand || ''
+    case 'fodmap': return fodmapRank(f) ?? 99
+    case 'animal': return f.animal_idx ?? -1
+    case 'protein': return proteinValue(f, view) ?? -1
+    case 'kcal': return f.kcal ?? Infinity
+    default: return 0
+  }
+}
+
+function compareColumn(key, dir, a, b, view) {
+  const av = columnValue(key, a, view)
+  const bv = columnValue(key, b, view)
+  const mul = dir === 'asc' ? 1 : -1
+  if (typeof av === 'string') return mul * av.localeCompare(bv)
+  return mul * (av - bv)
+}
+
 function AnimalMeter({ value, band }) {
   const pct = value == null ? 0 : Math.max(0, Math.min(100, value))
   return (
@@ -58,8 +85,28 @@ export default function Finder({ foods }) {
   const [minAnimal, setMinAnimal] = useState(0)
   const [maxKcal, setMaxKcal] = useState(600)
   const [minProtein, setMinProtein] = useState(0)
-  const [sortKey, setSortKey] = useState('fodmap')
+  const [columnOrder, setColumnOrder] = useState(DEFAULT_COLUMN_ORDER)
+  const [columnDir, setColumnDir] = useState(DEFAULT_COLUMN_DIR)
+  const [dragKey, setDragKey] = useState(null)
   const [selected, setSelected] = useState(null)
+
+  function clickColumn(key) {
+    if (columnOrder[0] === key) {
+      setColumnDir(d => ({ ...d, [key]: d[key] === 'asc' ? 'desc' : 'asc' }))
+    } else {
+      setColumnOrder(order => [key, ...order.filter(k => k !== key)])
+    }
+  }
+
+  function dropColumn(targetKey) {
+    if (!dragKey || dragKey === targetKey) return
+    setColumnOrder(order => {
+      const without = order.filter(k => k !== dragKey)
+      const idx = without.indexOf(targetKey)
+      return [...without.slice(0, idx), dragKey, ...without.slice(idx)]
+    })
+    setDragKey(null)
+  }
   const [customRules, setCustomRules] = useState([])
   const [customSort, setCustomSort] = useState(null)
   const [customTiebreak, setCustomTiebreak] = useState(null)
@@ -105,20 +152,17 @@ export default function Finder({ foods }) {
       const secondary = customTiebreak ? compareBy(customTiebreak.field, customTiebreak.dir) : null
       out.sort(compareWithTiebreak(primary, secondary))
     } else {
+      const visible = columnOrder.filter(k => view === 'dry' || k !== 'kcal')
       out.sort((a, b) => {
-        switch (sortKey) {
-          case 'fodmap': return (fodmapRank(a) - fodmapRank(b)) || ((b.animal_idx || 0) - (a.animal_idx || 0))
-          case 'animal': return (b.animal_idx || 0) - (a.animal_idx || 0)
-          case 'protein': return (proteinValue(b, view) || 0) - (proteinValue(a, view) || 0)
-          case 'kcal_lo': return (a.kcal || 9999) - (b.kcal || 9999)
-          case 'kcal_hi': return (b.kcal || 0) - (a.kcal || 0)
-          case 'brand': return (a.brand || '').localeCompare(b.brand || '')
-          default: return 0
+        for (const key of visible) {
+          const c = compareColumn(key, columnDir[key], a, b, view)
+          if (c) return c
         }
+        return 0
       })
     }
     return out
-  }, [foods, view, query, searchScope, fodmapOn, minAnimal, maxKcal, minProtein, sortKey, customRules, customSort, customTiebreak])
+  }, [foods, view, query, searchScope, fodmapOn, minAnimal, maxKcal, minProtein, columnOrder, columnDir, customRules, customSort, customTiebreak])
 
   return (
     <section className="wrap">
@@ -191,33 +235,38 @@ export default function Finder({ foods }) {
         <div className="results">
           <div className="results-head">
             <div className="count"><b>{results.length}</b> {view} foods match</div>
-            <select className="sortsel" value={sortKey} onChange={e => setSortKey(e.target.value)}>
-              <option value="fodmap">Sort: FODMAP risk (lowest fermentable-load first)</option>
-              <option value="animal">Sort: Animal index (high first)</option>
-              <option value="protein">Sort: {proteinLabel(view)} (high first)</option>
-              {view === 'dry' && <option value="kcal_lo">Sort: Calories (low first)</option>}
-              {view === 'dry' && <option value="kcal_hi">Sort: Calories (high first)</option>}
-              <option value="brand">Sort: Brand (A&ndash;Z)</option>
-            </select>
+            <div className="sort-hint">Click a column to sort, click again to flip, drag to reorder priority</div>
           </div>
           <table>
             <thead>
               <tr>
-                <th onClick={() => setSortKey('brand')}>Food</th>
-                <th onClick={() => setSortKey('fodmap')}>FODMAP risk</th>
-                <th onClick={() => setSortKey('animal')}>Animal</th>
-                <th onClick={() => setSortKey('protein')}>{proteinLabel(view)}</th>
-                {view === 'dry' && <th onClick={() => setSortKey('kcal_lo')}>Kcal</th>}
+                {columnOrder.filter(k => view === 'dry' || k !== 'kcal').map((key, i) => (
+                  <th
+                    key={key}
+                    draggable
+                    onDragStart={() => setDragKey(key)}
+                    onDragOver={e => e.preventDefault()}
+                    onDrop={() => dropColumn(key)}
+                    onClick={() => clickColumn(key)}
+                    className={i === 0 ? 'sort-primary' : ''}
+                  >
+                    {key === 'protein' ? proteinLabel(view) : COLUMN_LABELS[key]}
+                    {i === 0 && <span className="sort-arrow">{columnDir[key] === 'asc' ? ' ↑' : ' ↓'}</span>}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {results.map((f, i) => (
                 <tr key={i} onClick={() => setSelected(f)}>
-                  <td><div className="food-brand">{f.brand}</div><div className="food-name">{f.full_product_name}</div></td>
-                  <td><span className={`pill p-rank-${fodmapRank(f)}`}>{fodmapLabel(f)}</span></td>
-                  <td><AnimalMeter value={f.animal_idx} band={f.animal_band} /></td>
-                  <td className="num">{proteinValue(f, view) ?? '–'}</td>
-                  {view === 'dry' && <td className="num">{f.kcal ?? '–'}</td>}
+                  {columnOrder.filter(k => view === 'dry' || k !== 'kcal').map(key => {
+                    if (key === 'brand') return <td key={key}><div className="food-brand">{f.brand}</div><div className="food-name">{f.full_product_name}</div></td>
+                    if (key === 'fodmap') return <td key={key}><span className={`pill p-rank-${fodmapRank(f)}`}>{fodmapLabel(f)}</span></td>
+                    if (key === 'animal') return <td key={key}><AnimalMeter value={f.animal_idx} band={f.animal_band} /></td>
+                    if (key === 'protein') return <td key={key} className="num">{proteinValue(f, view) ?? '–'}</td>
+                    if (key === 'kcal') return <td key={key} className="num">{f.kcal ?? '–'}</td>
+                    return null
+                  })}
                 </tr>
               ))}
             </tbody>

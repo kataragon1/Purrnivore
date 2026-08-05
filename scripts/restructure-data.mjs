@@ -7,17 +7,13 @@
 // plant_protein_ct) are carried forward unchanged -- this script does not
 // recompute them, it only re-keys identity fields.
 //
-// KNOWN STALE / NOT YET RESEEDED (2026-08-04): this script now emits a
-// numeric `fodmap_rank` (0-4, via the legacy string->rank map in
-// src/lib/fodmapScale.js) instead of the old `fodmap_rating` string, so
-// display wording lives in one place going forward. The LIVE Firestore
-// `foods` collection has NOT been reseeded with this yet -- it still has
-// the old string field only. The app has a compatibility shim
-// (src/lib/fodmapScale.js) that derives rank from the legacy string, so
-// the site works fine either way. Don't bother reseeding just for this --
-// wait until the scraper/collection pass produces new raw data and the
-// real scorer module (still not built, see project memory) recomputes
-// everything, then this whole dataset gets regenerated anyway.
+// SCHEMA v2 (2026-08-05, the Whisker Dish rename): emits numeric
+// `fodmap_rank` (0-4, via the legacy string->rank map, display wording
+// lives in src/lib/fodmapScale.js) instead of the old `fodmap_rating`
+// string. Also adds `fat`/`fiber`/`ash` (null -- no source data yet for
+// the hand-scored seed, populate once the scraper delivers GA-panel
+// data) and a real derived `rx_otc` field (from the sub_brand
+// Prescription/Veterinary Diet tagging already done above).
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 
@@ -291,6 +287,10 @@ const restructured = foods.map((f, i) => {
   const owner = OWNERS[brand] ?? 'Unknown'
   const form = f.type
   const likelyTreat = isLikelyTreat(fullProductName)
+  // Real signal, not a placeholder: the sub_brand assignment already tags
+  // therapeutic/veterinary lines (Hill's Prescription Diet, Royal Canin
+  // Veterinary Diet, Purina Pro Plan Veterinary Diets) -- derive rx_otc from it.
+  const rxOtc = /prescription|veterinary diet/i.test(subBrand || '') ? 'Rx' : 'OTC'
 
   ownerCounts[owner] = (ownerCounts[owner] || 0) + 1
   const sbKey = `${brand}${subBrand ? ' > ' + subBrand : ''}`
@@ -314,8 +314,12 @@ const restructured = foods.map((f, i) => {
     form,
     protein: f.protein,
     protein_DMB: f.protein_DMB,
+    fat: null, // schema v2 field -- no source data yet for the hand-scored seed
+    fiber: null,
+    ash: null,
     kcal: f.kcal,
     moisture: f.moisture,
+    rx_otc: rxOtc,
     ingredients,
     notes: f.notes,
     fodmap_score: f.fodmap_score,

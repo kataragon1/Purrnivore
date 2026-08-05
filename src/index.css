@@ -19,6 +19,7 @@ header{border-bottom:1px solid var(--line-strong);background:var(--panel)}
 .masthead{display:flex;justify-content:space-between;align-items:baseline;padding:var(--sp-5) 0 var(--sp-4);flex-wrap:wrap;gap:var(--sp-3)}
 .logo{font-size:24px;font-weight:800;letter-spacing:-0.03em;line-height:1;display:flex;align-items:center;gap:8px}
 .logo .paw{font-size:20px}
+.logo .lc-the{text-transform:lowercase;font-weight:600;color:var(--muted);margin-right:2px}
 .logo .idx{font-family:var(--mono);font-size:13px;color:var(--accent);letter-spacing:0.02em;font-weight:500}
 .tagline{font-family:var(--mono);font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em}
 nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
@@ -110,11 +111,13 @@ section{padding:var(--sp-5) 0}
 .results-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-3);flex-wrap:wrap;gap:10px}
 .count{font-family:var(--sans);font-size:13px;color:var(--muted)}
 .count b{color:var(--accent);font-size:16px}
-.sortsel{font-family:var(--sans);font-size:12px;padding:7px 9px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel)}
+.sort-hint{font-family:var(--sans);font-size:11px;color:var(--muted)}
 table{width:100%;border-collapse:collapse;font-size:14px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
 thead th{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);font-weight:700;
-  text-align:left;padding:10px 10px;border-bottom:1px solid var(--line-strong);cursor:pointer;white-space:nowrap;position:sticky;top:0;background:var(--panel)}
+  text-align:left;padding:10px 10px;border-bottom:1px solid var(--line-strong);cursor:grab;white-space:nowrap;position:sticky;top:0;background:var(--panel);user-select:none}
 thead th:hover{color:var(--accent)}
+thead th.sort-primary{color:var(--accent)}
+.sort-arrow{color:var(--accent)}
 tbody td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
 tbody tr:nth-child(even){background:#fafbfa}
 tbody tr{cursor:pointer}
