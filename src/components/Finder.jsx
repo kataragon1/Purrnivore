@@ -85,6 +85,9 @@ export default function Finder({ foods }) {
   const [minAnimal, setMinAnimal] = useState(0)
   const [maxKcal, setMaxKcal] = useState(600)
   const [minProtein, setMinProtein] = useState(0)
+  const [ownerOn, setOwnerOn] = useState('')
+  const [rxOtcOn, setRxOtcOn] = useState('')
+  const owners = useMemo(() => [...new Set(foods.map(f => f.owner).filter(Boolean))].sort(), [foods])
   const [columnOrder, setColumnOrder] = useState(DEFAULT_COLUMN_ORDER)
   const [columnDir, setColumnDir] = useState(DEFAULT_COLUMN_DIR)
   const [dragKey, setDragKey] = useState(null)
@@ -127,6 +130,8 @@ export default function Finder({ foods }) {
     setMinAnimal(0)
     setMaxKcal(600)
     setMinProtein(0)
+    setOwnerOn('')
+    setRxOtcOn('')
   }
 
   const results = useMemo(() => {
@@ -144,6 +149,8 @@ export default function Finder({ foods }) {
       if (view === 'dry' && maxKcal < 600 && (f.kcal == null || f.kcal > maxKcal)) return false
       const prot = proteinValue(f, view)
       if (minProtein > 0 && (prot == null || prot < minProtein)) return false
+      if (ownerOn && f.owner !== ownerOn) return false
+      if (rxOtcOn && f.rx_otc !== rxOtcOn) return false
       if (customRules.length && !evaluateRules(f, customRules)) return false
       return true
     })
@@ -162,7 +169,7 @@ export default function Finder({ foods }) {
       })
     }
     return out
-  }, [foods, view, query, searchScope, fodmapOn, minAnimal, maxKcal, minProtein, columnOrder, columnDir, customRules, customSort, customTiebreak])
+  }, [foods, view, query, searchScope, fodmapOn, minAnimal, maxKcal, minProtein, ownerOn, rxOtcOn, columnOrder, columnDir, customRules, customSort, customTiebreak])
 
   return (
     <section className="wrap">
@@ -217,6 +224,21 @@ export default function Finder({ foods }) {
             <label>Min {proteinLabel(view)} <span className="rangeval">{minProtein}</span></label>
             <div className="rangerow">
               <input type="range" min="0" max="60" step="1" value={minProtein} onChange={e => setMinProtein(+e.target.value)} />
+            </div>
+          </div>
+          <div className="fgroup">
+            <label>Owner</label>
+            <select className="fselect" value={ownerOn} onChange={e => setOwnerOn(e.target.value)}>
+              <option value="">All owners</option>
+              {owners.map(o => <option key={o} value={o}>{o}</option>)}
+            </select>
+          </div>
+          <div className="fgroup">
+            <label>Rx / OTC</label>
+            <div className="chips">
+              <span className={`chip${rxOtcOn === '' ? ' on' : ''}`} onClick={() => setRxOtcOn('')}>All</span>
+              <span className={`chip${rxOtcOn === 'OTC' ? ' on' : ''}`} onClick={() => setRxOtcOn('OTC')}>OTC</span>
+              <span className={`chip${rxOtcOn === 'Rx' ? ' on' : ''}`} onClick={() => setRxOtcOn('Rx')}>Rx only</span>
             </div>
           </div>
           <button className="reset" onClick={resetFilters}>Reset all filters</button>
@@ -293,7 +315,17 @@ export default function Finder({ foods }) {
                 <div className="metric"><span>Animal idx</span><b><AnimalMeter value={selected.animal_idx} band={selected.animal_band} /></b></div>
                 <div className="metric"><span>{proteinLabel(selected.form)}</span><b>{proteinValue(selected, selected.form) ?? '–'}%</b></div>
                 <div className="metric"><span>Kcal/cup</span><b>{selected.form === 'dry' ? (selected.kcal ?? '–') : 'n/a'}</b></div>
+                <div className="metric"><span>Fat %</span><b>{selected.fat ?? 'unknown'}</b></div>
+                <div className="metric"><span>Fiber %</span><b>{selected.fiber ?? 'unknown'}</b></div>
+                <div className="metric"><span>Ash %</span><b>{selected.ash ?? 'unknown'}</b></div>
+                <div className="metric"><span>Moisture %</span><b>{selected.moisture ?? 'unknown'}</b></div>
               </div>
+              {selected.rx_otc && (
+                <div className="flags">
+                  <span className={`flag ${selected.rx_otc === 'Rx' ? 'no' : 'yes'}`}>{selected.rx_otc}</span>
+                  {selected.owner && <span className="flag">Owner: {selected.owner}</span>}
+                </div>
+              )}
               {customRules.filter(r => FIELD_BY_KEY[r.field]?.type === 'boolean' && r.value !== '').length > 0 && (
                 <div className="flags">
                   {customRules.filter(r => FIELD_BY_KEY[r.field]?.type === 'boolean' && r.value !== '').map(r => {

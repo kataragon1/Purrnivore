@@ -16,10 +16,15 @@ export const FIELD_DEFS = [
   { key: 'fodmap_rating', label: 'FODMAP risk', type: 'ordinal', options: FODMAP_LEVELS },
   { key: 'animal_idx', label: 'Animal index', type: 'number' },
   { key: 'protein', label: 'Protein %', type: 'number' },
+  { key: 'fat', label: 'Fat %', type: 'number' },
+  { key: 'fiber', label: 'Fiber %', type: 'number' },
+  { key: 'ash', label: 'Ash %', type: 'number' },
+  { key: 'moisture', label: 'Moisture %', type: 'number' },
   { key: 'kcal', label: 'Kcal / cup', type: 'number' },
   { key: 'plant_protein_ct', label: 'Plant-protein ingredient count', type: 'number' },
   { key: 'fish_free', label: 'Fish-free', type: 'boolean' },
   { key: 'has_probiotic', label: 'Has added probiotic', type: 'boolean' },
+  { key: 'rx_otc', label: 'Rx / OTC', type: 'enum', options: ['Rx', 'OTC'] },
 ]
 
 export const FIELD_BY_KEY = Object.fromEntries(FIELD_DEFS.map(f => [f.key, f]))
